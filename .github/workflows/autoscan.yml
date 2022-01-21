@@ -1,0 +1,30 @@
+name: OWSP Auto Scan
+on:
+  push:
+    branches: [ main ]
+#  pull_request:
+#    branches: [ ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: '11' # The JDK version to make available on the path.
+        java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
+        architecture: x64 # (x64 or x86) - defaults to x64
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Run with Gradle
+      run: ./gradlew bootrun &
+    - name: ZAP Full Scan
+      uses: zaproxy/action-full-scan@v0.2.0
+      with:
+        docker_name: 'owasp/zap2docker-stable'
+        target: 'http://localhost:50080/'
+        cmd_options: '-d'
